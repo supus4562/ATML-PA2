@@ -5,16 +5,31 @@ reward_tokenizer: Qwen/Qwen2.5-1.5B-Instruct
 ai_judge_model: Qwen/Qwen2.5-3B-Instruct
 value_model_init: Qwen/Qwen2.5-0.5B-Instruct
 
+# FP16 is intentionally preferred over BF16 for DPO/RL fine-tuning.
+# FP16 has 10 mantissa bits vs BF16's 7, which reduces log-probability
+# drift between training and inference — critical for DPO stability.
 dtype: float16
+
+# Frozen models (reward model etc.) stay at 8-bit to save memory.
 quantize_frozen_models: true
 
+# LoRA adapter config — tuned for RTX PRO 6000 Blackwell (96 GB GDDR7).
+# Rank 16 + all 7 linear layer types gives a far more expressive adapter
+# than the original r=8 on [q,v] only. The 96 GB VRAM makes this free.
 lora:
-  r: 8
-  alpha: 16
+  r: 16
+  alpha: 32          # keep 2× scaling rule: alpha = 2 * r
   dropout: 0.05
-  target_modules: [q_proj, v_proj]
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
 
-# PPO critic continuation: same lightweight adaptation family used during staff preparation.
+# PPO critic — same lightweight adapter family used during staff preparation.
 value_lora:
   r: 8
   alpha: 16

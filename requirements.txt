@@ -1,4 +1,4 @@
-torch>=2.4
+torch>=2.7
 transformers==4.57.1
 tokenizers==0.22.1
 trl==0.27.2
@@ -13,4 +13,11 @@ pandas>=2.0
 numpy>=1.26
 scikit-learn>=1.4
 matplotlib>=3.8
+seaborn>=0.13
 tqdm>=4.66
+triton>=3.2
+liger-kernel>=0.5
+# FlashAttention-4 (Blackwell-native). Install separately if needed:
+#   pip install flash-attn --no-build-isolation
+# The training code auto-detects whether flash_attn is present and
+# falls back to PyTorch SDPA if it is not installed.

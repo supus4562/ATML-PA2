@@ -1,15 +1,45 @@
 base_config: configs/base.yaml
+
+# ── DPO objective ────────────────────────────────────────────────────────────
+# β controls the KL penalty strength.  Lower β → more aggressive alignment,
+# higher β → model stays closer to the reference policy.
+# Assignment requires ablation over [0.03, 0.10, 0.30]; default is 0.10.
 beta: 0.10
-betas: [0.03, 0.10, 0.30]
+betas: [0.03, 0.10, 0.30]   # DO NOT CHANGE — fixed by assignment
+
+# ── Optimiser ────────────────────────────────────────────────────────────────
 learning_rate: 2.0e-5
 weight_decay: 0.0
-batch_size: 2
-grad_accum_steps: 8
-epochs: 1
-short_ablation_examples: 600
-max_sequence_length: 768
-max_generation_tokens: 256
 max_grad_norm: 1.0
+# 5% linear warmup — prevents early divergence in DPO log-ratio space
+warmup_ratio: 0.05
+
+# ── Batching — tuned for RTX PRO 6000 Blackwell (96 GB GDDR7) ───────────────
+# Qwen2.5-1.5B is tiny relative to the 96 GB budget.  We can afford a large
+# per-step batch, which maximises GPU utilisation and reduces Python overhead.
+#   effective batch size = batch_size × grad_accum_steps = 16 × 4 = 64
+batch_size: 16
+grad_accum_steps: 4
+
+# ── Sequence handling ────────────────────────────────────────────────────────
+# Increased from 768 → 1024 to capture longer preference responses without
+# truncation.  Still safely within Qwen2.5's 32 K context window.
+max_sequence_length: 1024
+max_generation_tokens: 512
+
+# ── Training schedule ────────────────────────────────────────────────────────
+epochs: 1
+
+# ── Ablation knobs ───────────────────────────────────────────────────────────
+# short_ablation_examples: fixed by assignment — DO NOT CHANGE
+short_ablation_examples: 600
+
+# ── torch.compile (opt-in) ───────────────────────────────────────────────────
+# Set to true after verifying the base run works.  Provides ~20-40% extra
+# throughput on Blackwell via kernel fusion (requires triton>=3.2).
+compile: false
+
+# ── Output paths ─────────────────────────────────────────────────────────────
 standard_output: outputs/task1_dpo/standard
 length_output: outputs/task1_dpo/length_balanced
 results_dir: results/task1_dpo
