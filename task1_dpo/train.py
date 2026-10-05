@@ -134,49 +134,7 @@ def _has_flash_attention() -> bool:
         return False
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Reference logprob pre-computation  (one-time sweep before training)
-# ─────────────────────────────────────────────────────────────────────────────
-
 @torch.no_grad()
-def precompute_reference_logprobs(
-    model,
-    loader: DataLoader,
-    device: torch.device,
-) -> list[dict]:
-    """Cache reference (frozen) logprobs for all training examples.
-
-    Uses reference_mode() which calls model.disable_adapter() on PeftModel,
-    giving us the clean base-model distribution without LoRA weights.
-
-    Returns a list of dicts, one per example: {ref_chosen_logp, ref_rejected_logp}.
-    Tensors are stored on CPU; moved back to GPU during training.
-    """
-    print("Pre-computing reference logprobs (one-time sweep)...")
-    cache: list[dict] = []
-    with reference_mode(model):
-        for batch in tqdm(loader, desc="Reference sweep", leave=False, dynamic_ncols=True):
-            if batch is None:
-                continue
-            chosen_batch, rejected_batch = batch
-            chosen_batch = {k: v.to(device, non_blocking=True) for k, v in chosen_batch.items()}
-            rejected_batch = {k: v.to(device, non_blocking=True) for k, v in rejected_batch.items()}
-
-            ref_c_logp, _, _ = response_sequence_logprobs(model, chosen_batch)
-            ref_r_logp, _, _ = response_sequence_logprobs(model, rejected_batch)
-
-            for c, r in zip(ref_c_logp.cpu(), ref_r_logp.cpu()):
-                cache.append({"ref_chosen_logp": c, "ref_rejected_logp": r})
-
-    print(f"  Cached {len(cache)} reference logprob pairs.")
-    return cache
-
-
-def _batch_ref_cache(cache: list[dict], batch_size: int) -> list[list[dict]]:
-    """Split flat cache list into batches matching the training loader's batch size."""
-    return [cache[i: i + batch_size] for i in range(0, len(cache), batch_size)]
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # prepare_dpo_run  (public API reused by ablate_beta.py)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -361,18 +319,7 @@ def run_training(
         f"{'='*60}\n"
     )
 
-    # ── 3. Pre-compute reference logprobs ─────────────────────────────────────
-    # Build a non-shuffled loader so cache index matches training order.
-    ref_loader = DataLoader(
-        bundle["rows"],
-        batch_size=int(cfg["batch_size"]),
-        shuffle=False,
-        collate_fn=make_collate(bundle["tokenizer"], int(cfg["max_sequence_length"])),
-        num_workers=4,
-        pin_memory=True,
-    )
-    ref_cache = precompute_reference_logprobs(model, ref_loader, device)
-    ref_batches = _batch_ref_cache(ref_cache, int(cfg["batch_size"]))
+    # (Reference logprobs computed dynamically in loop)
 
     # ── 4. Optional torch.compile ─────────────────────────────────────────────
     # mode="reduce-overhead" uses CUDA Graphs — eliminates Python kernel-launch
@@ -421,7 +368,6 @@ def run_training(
 
     global_step    = 0    # optimizer update steps
     accum_step     = 0    # micro-steps (forward + backward) between optimizer updates
-    ref_batch_idx  = 0    # current position in ref_batches
     epoch_loss     = 0.0
     epoch_pref_acc = 0.0
     n_micro        = 0
@@ -440,27 +386,14 @@ def run_training(
         chosen_batch   = {k: v.to(device, non_blocking=True) for k, v in chosen_batch.items()}
         rejected_batch = {k: v.to(device, non_blocking=True) for k, v in rejected_batch.items()}
 
-        # ── Pull cached reference logprobs for this micro-batch ───────────────
-        if ref_batch_idx < len(ref_batches):
-            ref_entries = ref_batches[ref_batch_idx]
-        else:
-            # Shuffle caused a slight mismatch — reuse last cached batch.
-            ref_entries = ref_batches[-1]
-        ref_batch_idx += 1
-
-        # Clamp to actual micro-batch size (last batch may be smaller).
-        batch_size_actual = chosen_batch["input_ids"].shape[0]
-        ref_entries = ref_entries[:batch_size_actual]
-
-        ref_chosen_logp = torch.stack(
-            [e["ref_chosen_logp"] for e in ref_entries]
-        ).to(device, non_blocking=True)
-        ref_rejected_logp = torch.stack(
-            [e["ref_rejected_logp"] for e in ref_entries]
-        ).to(device, non_blocking=True)
-
         # ── Forward pass under AMP autocast ───────────────────────────────────
         with autocast_ctx:
+            # 1. Reference forward (no_grad)
+            with torch.no_grad(), reference_mode(model):
+                ref_chosen_logp, _, _ = response_sequence_logprobs(model, chosen_batch)
+                ref_rejected_logp, _, _ = response_sequence_logprobs(model, rejected_batch)
+
+            # 2. Policy forward
             policy_chosen_logp,   _, _ = response_sequence_logprobs(model, chosen_batch)
             policy_rejected_logp, _, _ = response_sequence_logprobs(model, rejected_batch)
 
