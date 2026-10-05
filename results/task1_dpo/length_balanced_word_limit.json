@@ -1,0 +1,112 @@
+[
+  {
+    "prompt_id": "wl01",
+    "prompt": "Explain why regularization can improve generalization in at most 40 words.",
+    "word_limit": 40,
+    "base_response": "Regularization helps prevent overfitting by adding a penalty term to the loss function that discourages large weights, thus simplifying the model and reducing its complexity. This makes the model generalize better to unseen data.",
+    "base_word_count": 34,
+    "base_compliant": 1.0,
+    "dpo_response": "Regularization helps prevent overfitting by adding a penalty term to the loss function, encouraging simpler models that generalize better to unseen data. This reduces variance and improves model stability across different training sets.",
+    "dpo_word_count": 33,
+    "dpo_compliant": 1.0
+  },
+  {
+    "prompt_id": "wl02",
+    "prompt": "Define overfitting in no more than 25 words.",
+    "word_limit": 25,
+    "base_response": "Overfitting occurs when a model learns the training data too well, capturing noise and details specific to the training set that do not generalize to new, unseen data.",
+    "base_word_count": 28,
+    "base_compliant": 0.0,
+    "dpo_response": "Overfitting occurs when a model performs exceptionally well on the training data but poorly on unseen test data due to excessive complexity or reliance on noise in the training set.",
+    "dpo_word_count": 30,
+    "dpo_compliant": 0.0
+  },
+  {
+    "prompt_id": "wl03",
+    "prompt": "Summarize the purpose of a validation set in at most 30 words.",
+    "word_limit": 30,
+    "base_response": "A validation set is used to evaluate the performance and accuracy of machine learning models during training, ensuring they generalize well to unseen data.",
+    "base_word_count": 24,
+    "base_compliant": 1.0,
+    "dpo_response": "A validation set is used to tune hyperparameters and assess model performance during training without affecting the final evaluation on unseen data.",
+    "dpo_word_count": 22,
+    "dpo_compliant": 1.0
+  },
+  {
+    "prompt_id": "wl04",
+    "prompt": "Explain gradient descent in under 35 words.",
+    "word_limit": 35,
+    "base_response": "Gradient descent is an optimization algorithm used to minimize the cost function in machine learning models. It iteratively updates the model's parameters in the direction of steepest descent of the loss function, aiming to find the minimum value that minimizes prediction errors.",
+    "base_word_count": 43,
+    "base_compliant": 0.0,
+    "dpo_response": "Gradient descent is an optimization algorithm used to minimize the cost function in machine learning models. It iteratively updates the model's parameters in the direction of steepest descent based on the negative gradient of the loss function.",
+    "dpo_word_count": 38,
+    "dpo_compliant": 0.0
+  },
+  {
+    "prompt_id": "wl05",
+    "prompt": "Describe one advantage and one limitation of attention in at most 45 words.",
+    "word_limit": 45,
+    "base_response": "**Advantage:**\nAttention mechanisms allow models to focus on relevant information while ignoring irrelevant details during processing, enhancing the model's ability to understand complex tasks like language translation or image recognition.\n\n**Limitation:**\nThey can be computationally expensive due to their reliance on matrix operations for maintaining context across different parts of the input data, which can slow down training times and increase memory usage.",
+    "base_word_count": 64,
+    "base_compliant": 0.0,
+    "dpo_response": "Advantage: Attention allows models to focus on relevant information while ignoring irrelevant details, improving efficiency and accuracy.\n\nLimitation: It can lead to overfitting if not properly managed, as the model may become overly dependent on specific inputs or contexts that do not generalize well across different situations.",
+    "dpo_word_count": 47,
+    "dpo_compliant": 0.0
+  },
+  {
+    "prompt_id": "wl06",
+    "prompt": "What is distribution shift? Answer in no more than 30 words.",
+    "word_limit": 30,
+    "base_response": "Distribution shift refers to changes in the data distribution between training and testing datasets, leading to performance degradation of machine learning models.",
+    "base_word_count": 22,
+    "base_compliant": 1.0,
+    "dpo_response": "Distribution shift refers to changes in the data distribution between training and testing phases due to external factors such as new data sources or model updates, leading to performance degradation of models trained on biased datasets.",
+    "dpo_word_count": 36,
+    "dpo_compliant": 0.0
+  },
+  {
+    "prompt_id": "wl07",
+    "prompt": "Explain the role of a learning rate in at most 35 words.",
+    "word_limit": 35,
+    "base_response": "A learning rate is a hyperparameter that determines how much to adjust the model's weights during training based on the error between predictions and targets. It controls the step size in gradient descent optimization algorithms, balancing convergence speed with risk of overshooting local minima or diverging from the optimal solution. A suitable learning rate helps ensure efficient weight updates while maintaining stability and accuracy in model training.",
+    "base_word_count": 68,
+    "base_compliant": 0.0,
+    "dpo_response": "A learning rate determines how much to adjust weights during training based on errors; too high can cause overshooting, while too low may lead to slow convergence or even divergence. It's crucial for balancing between exploration and exploitation in machine learning optimization.",
+    "dpo_word_count": 43,
+    "dpo_compliant": 0.0
+  },
+  {
+    "prompt_id": "wl08",
+    "prompt": "Why can a model with high training accuracy still fail at deployment? Answer in at most 40 words.",
+    "word_limit": 40,
+    "base_response": "A model's high training accuracy doesn't guarantee it will perform well in real-world scenarios due to issues like overfitting, lack of generalization, and differences between training data and actual use cases.",
+    "base_word_count": 34,
+    "base_compliant": 1.0,
+    "dpo_response": "A model's high training accuracy doesn't guarantee it will perform well in real-world scenarios due to issues like overfitting, lack of generalization, or differences between training and test data distributions.",
+    "dpo_word_count": 33,
+    "dpo_compliant": 1.0
+  },
+  {
+    "prompt_id": "wl09",
+    "prompt": "Define calibration for a probabilistic classifier in under 30 words.",
+    "word_limit": 30,
+    "base_response": "Calibration involves adjusting the probabilities output by a model to reflect its confidence levels more accurately, typically through techniques like Platt scaling or isotonic regression.",
+    "base_word_count": 25,
+    "base_compliant": 1.0,
+    "dpo_response": "Calibration involves adjusting the probabilities output by a model to reflect its confidence levels more accurately, ensuring predictions align with actual likelihoods.",
+    "dpo_word_count": 22,
+    "dpo_compliant": 1.0
+  },
+  {
+    "prompt_id": "wl10",
+    "prompt": "Explain what a frozen reference model does in RLHF in at most 45 words.",
+    "word_limit": 45,
+    "base_response": "In Reinforcement Learning with Human Feedback (RLHF), a frozen reference model is one that remains unchanged during the training process of an AI agent to learn from human feedback. This approach ensures consistency and fairness in the learning experience for both the AI and humans involved, as it prevents any potential biases or changes that could affect the quality of the reinforcement learning outcomes.",
+    "base_word_count": 64,
+    "base_compliant": 0.0,
+    "dpo_response": "In Reinforcement Learning with Human Feedback (RLHF), a frozen reference model is one that remains unchanged during the training process of an AI agent to learn from human feedback. This approach ensures consistency and fairness in the learning experience for both the AI and humans involved, as it prevents any potential biases or changes that could affect the quality of the reinforcement learning outcomes.",
+    "dpo_word_count": 64,
+    "dpo_compliant": 0.0
+  }
+]

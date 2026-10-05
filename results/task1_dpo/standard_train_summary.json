@@ -1,0 +1,10 @@
+{
+  "run_name": "standard",
+  "beta": 0.1,
+  "total_optimizer_steps": 23,
+  "mean_loss": 0.6739457560346481,
+  "mean_preference_accuracy": 0.5669706245052054,
+  "elapsed_s": 257.40277892909944,
+  "output_path": "/home/ATML-PA2/outputs/task1_dpo/standard",
+  "train_log": "/home/ATML-PA2/results/task1_dpo/train_log_standard.jsonl"
+}
