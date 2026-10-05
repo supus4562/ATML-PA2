@@ -68,23 +68,27 @@ from task1_dpo.dpo import dpo_loss, validate_dpo_loss
 # Liger-Kernel patching (must happen before model load)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _apply_liger_kernel():
+def _apply_liger_kernel(use_compile: bool = False):
     """Patch Qwen2 layers with fused Triton kernels if liger_kernel is installed.
 
-    Patches: RMSNorm, RoPE, SwiGLU, CrossEntropy.
-    These are the most memory-intensive operations in a transformer forward pass.
-    Compatible with standard LoRA (does NOT patch lm_head, so PEFT works fine).
+    Patches RoPE, SwiGLU, CrossEntropy unconditionally.
+    RMSNorm is SKIPPED when torch.compile is active: LigerRMSNorm uses a
+    custom autograd_function_apply higher-order op that TorchDynamo cannot
+    trace through, causing an InternalTorchDynamoError on the first batch.
+    All other Liger kernels are dynamo-safe.
     """
     try:
         from liger_kernel.transformers import apply_liger_kernel_to_qwen2
+        patch_rms = not use_compile
         apply_liger_kernel_to_qwen2(
             rope=True,
-            rms_norm=True,
+            rms_norm=patch_rms,
             swiglu=True,
             cross_entropy=True,
             fused_linear_cross_entropy=False,  # disabled: incompatible with DPO
         )
-        print("[Liger-Kernel] Fused Qwen2 kernels applied (RMSNorm, RoPE, SwiGLU, CrossEntropy)")
+        patched = "RMSNorm, RoPE, SwiGLU, CrossEntropy" if patch_rms else "RoPE, SwiGLU, CrossEntropy (RMSNorm skipped — compile mode)"
+        print(f"[Liger-Kernel] Fused Qwen2 kernels applied ({patched})")
     except ImportError:
         print("[Liger-Kernel] Not installed — falling back to standard kernels. "
               "Install with: pip install liger-kernel")
@@ -182,6 +186,7 @@ def prepare_dpo_run(
     dataset_path: Optional[str] = None,
     beta: Optional[float] = None,
     max_examples: Optional[int] = None,
+    use_compile: bool = False,
 ):
     """Load config, data, model, and optimiser. Returns a ready-to-train bundle."""
     cfg = load_yaml(config_path)
@@ -189,7 +194,8 @@ def prepare_dpo_run(
 
     # Apply Liger-Kernel patches BEFORE model load so the patched modules are
     # used when the model is instantiated.
-    _apply_liger_kernel()
+    do_compile = use_compile or cfg.get("compile", False)
+    _apply_liger_kernel(do_compile)
 
     path = dataset_path or cfg["paths"]["dpo_standard_train"]
     rows = read_jsonl(path)
@@ -323,7 +329,7 @@ def run_training(
     validate_dpo_loss()
 
     # ── 2. Load bundle ────────────────────────────────────────────────────────
-    bundle = prepare_dpo_run(config_path, dataset_path, beta, max_examples)
+    bundle = prepare_dpo_run(config_path, dataset_path, beta, max_examples, use_compile=use_compile)
     cfg = bundle["cfg"]
     model = bundle["model"]
     loader = bundle["loader"]
@@ -387,7 +393,7 @@ def run_training(
     # to zero (FP16 min positive ≈ 6e-8). The scaler multiplies the loss by a
     # large factor before backward, then divides before the optimizer step.
     use_amp = torch.cuda.is_available()
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    scaler = torch.amp.GradScaler('cuda', (enabled=use_amp)
     autocast_ctx = torch.autocast(
         device_type="cuda",
         dtype=torch.float16,
