@@ -144,11 +144,11 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             do_sample=gen_cfg.get("do_sample", True),
         )
         
-        sequences = gen_out["sequences"]
-        attention_mask = gen_out["attention_mask"]
+        sequences = gen_out["sequences"].clone()
+        attention_mask = gen_out["attention_mask"].clone()
         prompt_width = gen_out["prompt_width"]
-        response_ids = gen_out["response_ids"]
-        response_mask = gen_out["response_mask"]
+        response_ids = gen_out["response_ids"].clone()
+        response_mask = gen_out["response_mask"].clone()
         responses = gen_out["responses"]
         
         with torch.no_grad():
