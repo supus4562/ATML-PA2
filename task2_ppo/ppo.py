@@ -48,7 +48,12 @@ def ppo_policy_loss(new_logp, old_logp, advantage, mask, eps=0.2):
 
     Validate this starter implementation against the clipped surrogate in the assignment manual.
     """
-    ratio = torch.exp(new_logp - old_logp)
+    # Clamp the log-ratio before exponentiation to prevent float32 overflow.
+    # After a gradient step new_logp can diverge from old_logp on low-prob tokens;
+    # exp(x) overflows float32 at x ≈ 88.  The clip boundary (1±eps) handles any
+    # ratio >> 1 anyway, so clamping at ±10 (exp(10)≈22000) is conservative.
+    log_ratio = (new_logp - old_logp).clamp(-10.0, 10.0)
+    ratio = torch.exp(log_ratio)
     surr1 = ratio * advantage
     surr2 = ratio.clamp(1.0 - eps, 1.0 + eps) * advantage
 
