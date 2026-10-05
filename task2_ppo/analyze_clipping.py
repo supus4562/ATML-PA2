@@ -102,9 +102,6 @@ def main():
     with open(out_dir / "analyze_clipping.json", "w") as f:
         json.dump(results, f, indent=2)
 
-if __name__ == "__main__":
-    main()
-
     # Now run short continuations for each epsilon
     from task2_ppo.continue_train import run_ppo
     for eps in clip_values:
@@ -117,3 +114,6 @@ if __name__ == "__main__":
             clip_epsilon=eps,
             run_name=run_name
         )
+
+if __name__ == "__main__":
+    main()
