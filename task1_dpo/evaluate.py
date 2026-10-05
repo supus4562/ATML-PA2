@@ -132,7 +132,7 @@ def run_evaluation(
 
     print(f"\n[Evaluate] '{name}'  |  {len(eval_rows)} eval examples")
 
-    # ── Encode eval set for logprob computation ───────────────────────────────
+    # ── Filter eval rows that exceed max_seq ─────────────────────────────────
     from common.data import (
         encode_prompt_response,
         pad_batch,
@@ -140,6 +140,20 @@ def run_evaluation(
         prompt_messages_from_preference as _pmfp,
     )
     from common.models import reference_mode
+
+    valid_eval_rows = []
+    for row in eval_rows:
+        try:
+            prompt = _pmfp(row)
+            yc, yr = _pref_resp(row)
+            encode_prompt_response(tokenizer, prompt, yc, max_seq)
+            encode_prompt_response(tokenizer, prompt, yr, max_seq)
+            valid_eval_rows.append(row)
+        except ValueError:
+            pass
+    if len(valid_eval_rows) < len(eval_rows):
+        print(f"  Filtered {len(eval_rows) - len(valid_eval_rows)} rows exceeding max_sequence_length.")
+    eval_rows = valid_eval_rows
 
     def _make_batches(rows, bs):
         for i in range(0, len(rows), bs):
