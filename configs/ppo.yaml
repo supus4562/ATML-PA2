@@ -3,7 +3,7 @@ base_config: configs/base.yaml
 # Short continuation from the supplied midpoint.
 updates: 20
 fork_updates: 8
-prompts_per_update: 16
+prompts_per_update: 1
 ppo_epochs: 2
 
 policy_learning_rate: 3.0e-6

@@ -93,5 +93,30 @@ def main():
         
     print(f"Plots saved to {plots_dir}")
 
+    # 4. Explicit Stability Statistic for Clipping Study
+    import numpy as np
+    stability_stats = {}
+    for eps in eps_vals:
+        log_file = res_dir / f"ppo_train_log_clip_{eps}.jsonl"
+        if log_file.exists():
+            losses = []
+            grad_norms = []
+            with open(log_file, "r") as f:
+                for line in f:
+                    d = json.loads(line)
+                    losses.append(d["policy_loss"])
+                    grad_norms.append(d["grad_norm_policy"])
+            
+            # A good stability statistic: standard deviation of policy loss and max gradient norm
+            stability_stats[f"clip_{eps}"] = {
+                "policy_loss_std": float(np.std(losses)) if len(losses) > 0 else 0,
+                "max_grad_norm": float(np.max(grad_norms)) if len(grad_norms) > 0 else 0
+            }
+            
+    if stability_stats:
+        with open(res_dir / "clipping_stability_stats.json", "w") as f:
+            json.dump(stability_stats, f, indent=2)
+        print("Saved clipping_stability_stats.json (Required for your report!)")
+
 if __name__ == "__main__":
     main()
