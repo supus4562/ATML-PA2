@@ -6,7 +6,7 @@ import json
 
 from common.data import load_yaml, repo_path, read_jsonl, prompt_messages
 from common.models import load_value_model, load_reward_model, load_tokenizer, load_policy, token_values
-from common.generation import pad_batch, score_reward_pairs
+from common.generation import  score_reward_pairs
 from task2_ppo.ppo import compute_gae, shaped_rewards, ppo_policy_loss, normalize_advantages
 from common.generation import response_token_logprobs, _response_mask
 

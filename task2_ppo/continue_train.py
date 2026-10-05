@@ -23,7 +23,7 @@ from common.generation import (
     response_sequence_logprobs,
     score_reward_pairs,
     response_token_logprobs,
-    pad_batch
+
 )
 from task2_ppo.ppo import (
     compute_gae,
