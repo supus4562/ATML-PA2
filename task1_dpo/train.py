@@ -393,7 +393,7 @@ def run_training(
     # to zero (FP16 min positive ≈ 6e-8). The scaler multiplies the loss by a
     # large factor before backward, then divides before the optimizer step.
     use_amp = torch.cuda.is_available()
-    scaler = torch.amp.GradScaler('cuda', (enabled=use_amp)
+    scaler = torch.amp.GradScaler('cuda', enabled=use_amp)
     autocast_ctx = torch.autocast(
         device_type="cuda",
         dtype=torch.float16,
