@@ -67,10 +67,12 @@ def main():
         old_logp[i, :lp_len] = old_lp[:lp_len].to(device)
         ref_logp[i, :lp_len] = ref_lp[:lp_len].to(device)
         # Apply eos mask logic
-        response_mask[i] = _response_mask(response_ids[i].unsqueeze(0), tokenizer.eos_token_id).squeeze(0)
+        rmask = _response_mask(response_ids[i].unsqueeze(0), tokenizer.eos_token_id).squeeze(0)
+        rmask[r_len:] = 0.0
+        response_mask[i] = rmask
 
     sequences = torch.cat([enc["input_ids"], response_ids], dim=1)
-    attention_mask = torch.cat([enc["attention_mask"], torch.ones_like(response_ids)], dim=1)
+    attention_mask = torch.cat([enc["attention_mask"], response_mask.long()], dim=1)
     
     with torch.no_grad():
         task_rewards = score_reward_pairs(reward_model, reward_tokenizer, prompts_msgs, responses)
