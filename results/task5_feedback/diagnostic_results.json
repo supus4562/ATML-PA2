@@ -1,0 +1,50 @@
+{
+  "rlvr": {
+    "reasoning_sensitivity": {
+      "better_rate": 0.0,
+      "worse_rate": 0.0,
+      "tie_rate": 1.0
+    },
+    "outcome_sensitivity": {
+      "better_rate": 1.0,
+      "worse_rate": 0.0,
+      "tie_rate": 0.0
+    },
+    "filler_susceptibility": {
+      "better_rate": 0.0,
+      "worse_rate": 0.0,
+      "tie_rate": 1.0
+    },
+    "distractor_robustness": {
+      "better_rate": 1.0,
+      "worse_rate": 0.0,
+      "tie_rate": 0.0
+    },
+    "S_reason": 0.0,
+    "S_outcome": 1.0
+  },
+  "rlaif": {
+    "reasoning_sensitivity": {
+      "better_rate": 0.0,
+      "worse_rate": 0.0,
+      "tie_rate": 1.0
+    },
+    "outcome_sensitivity": {
+      "better_rate": 0.0,
+      "worse_rate": 0.0,
+      "tie_rate": 1.0
+    },
+    "filler_susceptibility": {
+      "better_rate": 0.0,
+      "worse_rate": 0.25,
+      "tie_rate": 0.75
+    },
+    "distractor_robustness": {
+      "better_rate": 0.25,
+      "worse_rate": 0.0,
+      "tie_rate": 0.75
+    },
+    "S_reason": 0.0,
+    "S_outcome": 0.0
+  }
+}

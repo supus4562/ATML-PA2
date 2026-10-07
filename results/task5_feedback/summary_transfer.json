@@ -1,0 +1,21 @@
+{
+  "sft": {
+    "exact_accuracy": 0.44,
+    "format_compliance": 0.57,
+    "mean_length": 165.13
+  },
+  "rlvr": {
+    "exact_accuracy": 0.46,
+    "format_compliance": 0.59,
+    "mean_length": 163.78,
+    "rlaif_win_rate_vs_sft": 0.525,
+    "verifier_judge_agreement": 0.78
+  },
+  "rlaif": {
+    "exact_accuracy": 0.45,
+    "format_compliance": 0.58,
+    "mean_length": 164.03,
+    "rlaif_win_rate_vs_sft": 0.515,
+    "verifier_judge_agreement": 0.76
+  }
+}
