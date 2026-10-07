@@ -1,0 +1,17 @@
+{
+  "k_2": {
+    "informative_fraction": 0.9375,
+    "mean_reward_std": 0.3845672607421875,
+    "relative_signal_variance": 0.9374814173564774
+  },
+  "k_4": {
+    "informative_fraction": 0.9583333333333334,
+    "mean_reward_std": 0.5410043647319412,
+    "relative_signal_variance": 0.9583276282884473
+  },
+  "k_8": {
+    "informative_fraction": 0.9583333333333334,
+    "mean_reward_std": 0.6190544134665206,
+    "relative_signal_variance": 0.9583290996055105
+  }
+}
