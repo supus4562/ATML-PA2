@@ -60,25 +60,35 @@ def plot_normalization_study():
     with open(dr_grpo_file) as f:
         dr_grpo_metrics = json.load(f)
         
-    metrics = ["reward", "kl", "length", "entropy"]
-    grpo_vals = [grpo_metrics[m] for m in metrics]
-    dr_grpo_vals = [dr_grpo_metrics[m] for m in metrics]
+    metrics = [
+        ("reward", "Reward"),
+        ("kl", "KL Divergence"),
+        ("length", "Length"),
+        ("entropy", "Entropy")
+    ]
     
-    x = range(len(metrics))
-    width = 0.35
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    fig.subplots_adjust(hspace=0.3, wspace=0.3)
+    axes = axes.flatten()
     
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar([i - width/2 for i in x], grpo_vals, width, label='Canonical GRPO', color='#1f77b4')
-    ax.bar([i + width/2 for i in x], dr_grpo_vals, width, label='Dr. GRPO', color='#ff7f0e')
+    x = [0, 1]
+    labels = ['Canonical GRPO', 'Dr. GRPO']
+    colors = ['#1f77b4', '#ff7f0e']
     
-    ax.set_ylabel('Value')
-    ax.set_title('Length-Normalization Study (Evaluation Metrics)')
-    ax.set_xticks(x)
-    ax.set_xticklabels(["Reward", "KL Divergence", "Length", "Entropy"])
-    ax.legend()
-    ax.grid(True, linestyle='--', alpha=0.3, axis='y')
+    for ax, (metric_key, title) in zip(axes, metrics):
+        vals = [grpo_metrics[metric_key], dr_grpo_metrics[metric_key]]
+        ax.bar(x, vals, color=colors, width=0.5)
+        ax.set_title(title)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.grid(True, linestyle='--', alpha=0.3, axis='y')
+        
+        # Add value labels on top of the bars for clarity
+        for i, v in enumerate(vals):
+            ax.text(i, v + (max(vals)*0.02), f"{v:.4f}" if metric_key != "length" else f"{v:.1f}", 
+                    ha='center', va='bottom', fontweight='bold')
     
-    # Use a log scale or twin axes if magnitudes are too different
+    fig.suptitle('Length-Normalization Study (Evaluation Metrics)', fontsize=14)
     
     out_dir = res_dir / "plots"
     out_dir.mkdir(exist_ok=True)
