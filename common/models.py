@@ -62,10 +62,16 @@ def make_value_lora_config(cfg: dict) -> LoraConfig:
 
 def load_policy(cfg: dict, adapter_path: str | None = None, trainable: bool = False, fresh_lora: bool = False):
     dtype = resolve_dtype(cfg.get("dtype", "float16"))
+    kwargs = {
+        "torch_dtype": dtype,
+        "low_cpu_mem_usage": True,
+    }
+    if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8:
+        kwargs["attn_implementation"] = "flash_attention_2"
+        
     model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model"],
-        dtype=dtype,
-        low_cpu_mem_usage=True,
+        **kwargs
     )
     tok_for_config = load_tokenizer(cfg["base_model"])
     model.config.pad_token_id = tok_for_config.pad_token_id

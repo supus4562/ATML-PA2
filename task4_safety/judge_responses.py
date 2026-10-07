@@ -45,6 +45,10 @@ def load_judge(cfg):
         tok.pad_token = tok.eos_token
 
     kwargs = {"low_cpu_mem_usage": True}
+    
+    if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8:
+        kwargs["attn_implementation"] = "flash_attention_2"
+        
     if torch.cuda.is_available() and bool(cfg.get("quantize_frozen_models", True)):
         kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -53,7 +57,7 @@ def load_judge(cfg):
         )
         kwargs["device_map"] = "auto"
     else:
-        kwargs["dtype"] = resolve_dtype(cfg.get("dtype", "float16"))
+        kwargs["torch_dtype"] = resolve_dtype(cfg.get("dtype", "float16"))
 
     model = AutoModelForCausalLM.from_pretrained(cfg["ai_judge_model"], **kwargs)
     model.eval()
@@ -103,6 +107,10 @@ def judge_one(tok, model, prompt, response, max_new_tokens=64):
 
 
 def main():
+    import os
+    from common.data import write_jsonl, repo_path
+    from pathlib import Path
+    
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="configs/feedback.yaml")
     ap.add_argument("--input", help="Optional generated JSONL file to inspect")
@@ -110,12 +118,36 @@ def main():
     cfg = load_yaml(args.config)
     tok, model = load_judge(cfg)
     print("Fixed Task 4 judge loaded:", cfg["ai_judge_model"])
+    
+    outdir = Path(repo_path(cfg["results_dir"])) / "task4_safety"
+    
     if args.input:
-        rows = read_jsonl(args.input)
-        print("Input rows:", len(rows))
-    raise NotImplementedError(
-        "TODO(student): apply judge_one to your frozen-policy response files, cache the labels, and implement the required Task 4 aggregation."
-    )
+        in_paths = [Path(args.input)]
+    else:
+        in_paths = []
+        for policy in ["sft", "dpo", "ppo", "grpo"]:
+            p = outdir / f"generated_{policy}.jsonl"
+            if p.exists():
+                in_paths.append(p)
+            else:
+                print(f"Warning: {p} not found")
+    
+    for in_path in in_paths:
+        rows = read_jsonl(in_path)
+        print(f"Judging {len(rows)} rows from {in_path.name}...")
+        judged_rows = []
+        for i, row in enumerate(rows):
+            judge_res = judge_one(tok, model, row["prompt"], row["response"])
+            row["judge_label"] = judge_res["label"]
+            row["judge_confidence"] = judge_res["confidence"]
+            row["judge_rationale"] = judge_res["rationale_tag"]
+            judged_rows.append(row)
+            if (i+1) % 50 == 0:
+                print(f"  ...judged {i+1}/{len(rows)}")
+                
+        out_path = outdir / in_path.name.replace("generated_", "judged_")
+        write_jsonl(out_path, judged_rows)
+        print(f"Saved judged responses to {out_path}")
 
 
 if __name__ == "__main__":
