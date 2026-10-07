@@ -104,7 +104,7 @@ def run_grpo(config_path: str, output: str | None = None, updates: int | None = 
             tokenizer,
             rollout_texts,
             max_prompt_length=max_prompt_len,
-            max_completion_length=max_comp_len,
+            max_new_tokens=max_comp_len,
         )
         
         sequences = gen_out["sequences"].clone()
