@@ -43,19 +43,35 @@ def batch_generate(
 
     was_training = model.training
     model.eval()
+    
+    if hasattr(model, "gradient_checkpointing_disable"):
+        model.gradient_checkpointing_disable()
+        
+    old_use_cache = getattr(model.config, "use_cache", True)
+    model.config.use_cache = True
+        
     kwargs = {
         "max_new_tokens": max_new_tokens,
         "do_sample": do_sample,
         "pad_token_id": tokenizer.pad_token_id,
         "eos_token_id": tokenizer.eos_token_id,
+        "use_cache": True,
     }
     if do_sample:
         kwargs.update({"temperature": temperature, "top_p": top_p})
 
     with torch.inference_mode():
         seq = model.generate(**enc, **kwargs)
+        
+    model.config.use_cache = old_use_cache
+        
     if was_training:
         model.train()
+        if hasattr(model, "gradient_checkpointing_enable"):
+            try:
+                model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            except TypeError:
+                model.gradient_checkpointing_enable()
 
     prompt_width = enc["input_ids"].shape[1]
     response_ids = seq[:, prompt_width:]

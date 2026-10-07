@@ -2,8 +2,8 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-.venv/
-venv/
+.venv*/
+venv*/
 
 # Caches
 .cache/

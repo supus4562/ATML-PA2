@@ -12,16 +12,20 @@ def main():
     print("KL beta conditions:", cfg["kl_values"])
     print("Fork update budget:", cfg["fork_updates"])
     
+    import subprocess
+    
     for beta in cfg["kl_values"]:
         print(f"\n--- Running KL Beta {beta} ---")
         run_name = f"beta_{beta}"
-        run_ppo(
-            config_path=args.config,
-            output=f"outputs/task2_ppo/{run_name}",
-            updates=cfg["fork_updates"],
-            kl_beta=beta,
-            run_name=run_name
-        )
+        cmd = [
+            "python", "-m", "task2_ppo.continue_train",
+            "--config", args.config,
+            "--run-name", run_name,
+            "--output", f"outputs/task2_ppo/{run_name}",
+            "--updates", str(cfg["fork_updates"]),
+            "--kl-beta", str(beta)
+        ]
+        subprocess.run(cmd, check=True)
 
 if __name__ == "__main__":
     main()

@@ -102,18 +102,21 @@ def main():
     with open(out_dir / "analyze_clipping.json", "w") as f:
         json.dump(results, f, indent=2)
 
+    import subprocess
+    
     # Now run short continuations for each epsilon
-    from task2_ppo.continue_train import run_ppo
     for eps in clip_values:
         run_name = f"clip_{eps}"
         print(f"\nRunning short fork for epsilon: {eps}")
-        run_ppo(
-            config_path=args.config,
-            output=f"outputs/task2_ppo/{run_name}",
-            updates=cfg["fork_updates"],
-            clip_epsilon=eps,
-            run_name=run_name
-        )
+        cmd = [
+            "python", "-m", "task2_ppo.continue_train",
+            "--config", args.config,
+            "--run-name", run_name,
+            "--output", f"outputs/task2_ppo/{run_name}",
+            "--updates", str(cfg["fork_updates"]),
+            "--clip-epsilon", str(eps)
+        ]
+        subprocess.run(cmd, check=True)
 
 if __name__ == "__main__":
     main()

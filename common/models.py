@@ -60,11 +60,28 @@ def make_value_lora_config(cfg: dict) -> LoraConfig:
     )
 
 
+def _apply_liger_kernel():
+    try:
+        from liger_kernel.transformers import apply_liger_kernel_to_qwen2
+        apply_liger_kernel_to_qwen2(
+            rope=True,
+            rms_norm=True,
+            swiglu=True,
+            cross_entropy=True,
+            fused_linear_cross_entropy=False,
+        )
+        print("[Liger-Kernel] Fused Qwen2 kernels applied globally.")
+    except ImportError:
+        pass
+
+
 def load_policy(cfg: dict, adapter_path: str | None = None, trainable: bool = False, fresh_lora: bool = False):
+    _apply_liger_kernel()
     dtype = resolve_dtype(cfg.get("dtype", "float16"))
     kwargs = {
         "torch_dtype": dtype,
         "low_cpu_mem_usage": True,
+        "attn_implementation": "flash_attention_2",
     }
     model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model"],
@@ -132,7 +149,7 @@ def _quant_config(bits: int | None, dtype):
 def load_reward_model(cfg: dict):
     dtype = resolve_dtype(cfg.get("dtype", "float16"))
     qcfg = _quant_config(8 if cfg.get("quantize_frozen_models", True) else None, dtype)
-    kwargs = {"num_labels": 1, "low_cpu_mem_usage": True}
+    kwargs = {"num_labels": 1, "low_cpu_mem_usage": True, "attn_implementation": "flash_attention_2"}
     if qcfg is not None:
         kwargs.update({"quantization_config": qcfg, "device_map": "auto"})
     else:
@@ -159,6 +176,7 @@ def load_value_model(cfg: dict, checkpoint: str, train_mode: str = "lora_head"):
         num_labels=1,
         dtype=dtype,
         low_cpu_mem_usage=True,
+        attn_implementation="flash_attention_2",
     )
     tok_for_config = load_tokenizer(cfg["base_model"])
     model.config.pad_token_id = tok_for_config.pad_token_id
