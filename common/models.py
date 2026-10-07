@@ -75,13 +75,21 @@ def _apply_liger_kernel():
         pass
 
 
+def _attn_implementation() -> str:
+    try:
+        import flash_attn  # noqa: F401
+        return "flash_attention_2"
+    except ImportError:
+        return "sdpa"
+
+
 def load_policy(cfg: dict, adapter_path: str | None = None, trainable: bool = False, fresh_lora: bool = False):
     _apply_liger_kernel()
     dtype = resolve_dtype(cfg.get("dtype", "float16"))
     kwargs = {
         "torch_dtype": dtype,
         "low_cpu_mem_usage": True,
-        "attn_implementation": "flash_attention_2",
+        "attn_implementation": _attn_implementation(),
     }
     model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model"],
@@ -149,7 +157,7 @@ def _quant_config(bits: int | None, dtype):
 def load_reward_model(cfg: dict):
     dtype = resolve_dtype(cfg.get("dtype", "float16"))
     qcfg = _quant_config(8 if cfg.get("quantize_frozen_models", True) else None, dtype)
-    kwargs = {"num_labels": 1, "low_cpu_mem_usage": True, "attn_implementation": "flash_attention_2"}
+    kwargs = {"num_labels": 1, "low_cpu_mem_usage": True, "attn_implementation": _attn_implementation()}
     if qcfg is not None:
         kwargs.update({"quantization_config": qcfg, "device_map": "auto"})
     else:
@@ -176,7 +184,7 @@ def load_value_model(cfg: dict, checkpoint: str, train_mode: str = "lora_head"):
         num_labels=1,
         dtype=dtype,
         low_cpu_mem_usage=True,
-        attn_implementation="flash_attention_2",
+        attn_implementation=_attn_implementation(),
     )
     tok_for_config = load_tokenizer(cfg["base_model"])
     model.config.pad_token_id = tok_for_config.pad_token_id
