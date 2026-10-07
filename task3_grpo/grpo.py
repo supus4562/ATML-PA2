@@ -11,10 +11,17 @@ def group_relative_advantages(rewards: torch.Tensor, group_ids: torch.Tensor, ep
     `group_ids[i]` identifies which prompt produced reward `rewards[i]`.
     Validate this implementation against the group-relative definition in the assignment manual.
     """
-    # Starter implementation: students must validate the grouping logic carefully.
-    mean = rewards.mean()
-    std = rewards.std(unbiased=False).clamp_min(eps)
-    return (rewards - mean) / std
+    advantages = torch.zeros_like(rewards)
+    for g in group_ids.unique():
+        idx = (group_ids == g)
+        r_group = rewards[idx]
+        mean = r_group.mean()
+        if r_group.shape[0] > 1:
+            std = r_group.std(unbiased=False).clamp_min(eps)
+            advantages[idx] = (r_group - mean) / std
+        else:
+            advantages[idx] = 0.0
+    return advantages
 
 
 def grpo_policy_loss(
@@ -33,7 +40,8 @@ def grpo_policy_loss(
     `token_mask` may be all-zero for a completion that was deliberately masked because it hit the
     maximum generation length.
     """
-    ratio = torch.exp(new_logp - old_logp)
+    log_ratio = (new_logp - old_logp).clamp(-10.0, 10.0)
+    ratio = torch.exp(log_ratio)
     adv = seq_adv[:, None]
     s1 = ratio * adv
     s2 = ratio.clamp(1.0 - eps, 1.0 + eps) * adv
@@ -53,7 +61,7 @@ def grpo_policy_loss(
     else:
         raise ValueError(f"Unknown loss_type={loss_type!r}")
 
-    log_ratio_ref_over_policy = ref_logp - new_logp
+    log_ratio_ref_over_policy = (ref_logp - new_logp).clamp(-10.0, 10.0)
     per_token_kl = torch.exp(log_ratio_ref_over_policy) - log_ratio_ref_over_policy - 1.0
     kl = masked_mean(per_token_kl, token_mask)
     loss = policy_term + float(beta) * kl
