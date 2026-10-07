@@ -45,9 +45,6 @@ def load_judge(cfg):
         tok.pad_token = tok.eos_token
 
     kwargs = {"low_cpu_mem_usage": True}
-    
-    if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8:
-        kwargs["attn_implementation"] = "flash_attention_2"
         
     if torch.cuda.is_available() and bool(cfg.get("quantize_frozen_models", True)):
         kwargs["quantization_config"] = BitsAndBytesConfig(

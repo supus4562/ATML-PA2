@@ -66,9 +66,6 @@ def load_policy(cfg: dict, adapter_path: str | None = None, trainable: bool = Fa
         "torch_dtype": dtype,
         "low_cpu_mem_usage": True,
     }
-    if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8:
-        kwargs["attn_implementation"] = "flash_attention_2"
-        
     model = AutoModelForCausalLM.from_pretrained(
         cfg["base_model"],
         **kwargs
