@@ -148,11 +148,13 @@ def run_grpo(config_path: str, output: str | None = None, updates: int | None = 
         
         # 4. Compute Old Logprobs and Reference Logprobs
         with torch.no_grad():
-            old_logp = response_token_logprobs(policy, sequences, attention_mask, prompt_width).clone()
+            old_logp, _ = response_token_logprobs(policy, sequences, attention_mask, prompt_width, response_ids)
+            old_logp = old_logp.clone()
             old_logp = _sanitize_logp(old_logp)
             
             with reference_mode(policy):
-                ref_logp = response_token_logprobs(policy, sequences, attention_mask, prompt_width).clone()
+                ref_logp, _ = response_token_logprobs(policy, sequences, attention_mask, prompt_width, response_ids)
+                ref_logp = ref_logp.clone()
                 ref_logp = _sanitize_logp(ref_logp)
                 
         # 5. Optimize policy
@@ -161,7 +163,7 @@ def run_grpo(config_path: str, output: str | None = None, updates: int | None = 
         valid_epochs = 0
         
         for ep in range(epochs):
-            new_logp = response_token_logprobs(policy, sequences, attention_mask, prompt_width)
+            new_logp, _ = response_token_logprobs(policy, sequences, attention_mask, prompt_width, response_ids)
             new_logp = _sanitize_logp(new_logp)
             
             loss, metrics = grpo_policy_loss(
