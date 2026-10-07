@@ -1,0 +1,22 @@
+{
+  "run_name": "length_balanced",
+  "adapter": "outputs/task1_dpo/length_balanced",
+  "n_eval": 294,
+  "eval_loss": 0.6688417196273804,
+  "eval_logit_mean": 0.08196370303630829,
+  "preference_accuracy": 0.6428571343421936,
+  "kl_mean": -2.2022318840026855,
+  "kl_std": 2.5232090950012207,
+  "reward_mean": 1.6574622043946974,
+  "reward_std": 1.271840621327226,
+  "reward_p5": -0.6953125,
+  "reward_p95": 3.2932617187499993,
+  "length_mean": 233.8673469387755,
+  "length_median": 183.0,
+  "length_p5": 3.0,
+  "length_p95": 512.0,
+  "truncation_rate": 0.20748299319727892,
+  "length_reward_corr": 0.0785063215733767,
+  "base_wl_compliance": 0.5,
+  "dpo_wl_compliance": 0.4
+}

@@ -1,0 +1,22 @@
+{
+  "run_name": "beta_0.1",
+  "adapter": "outputs/task1_dpo/beta_0.1",
+  "n_eval": 294,
+  "eval_loss": 0.6814062595367432,
+  "eval_logit_mean": 0.028153276070952415,
+  "preference_accuracy": 0.6224489808082581,
+  "kl_mean": -0.0802006646990776,
+  "kl_std": 1.119146704673767,
+  "reward_mean": 1.6036743371665072,
+  "reward_std": 1.316630163400756,
+  "reward_p5": -0.46529541015625,
+  "reward_p95": 3.27939453125,
+  "length_mean": 240.89455782312925,
+  "length_median": 222.0,
+  "length_p5": 3.0,
+  "length_p95": 512.0,
+  "truncation_rate": 0.22108843537414966,
+  "length_reward_corr": 0.09847063353915418,
+  "base_wl_compliance": 0.5,
+  "dpo_wl_compliance": 0.5
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "epsilon": 0.05,
+    "clipped_surrogate": -0.09509921818971634,
+    "affected_fraction": 0.552901029586792
+  },
+  {
+    "epsilon": 0.2,
+    "clipped_surrogate": -0.07280458509922028,
+    "affected_fraction": 0.3377701938152313
+  },
+  {
+    "epsilon": 0.5,
+    "clipped_surrogate": -0.048525068908929825,
+    "affected_fraction": 0.17747440934181213
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "run_name": "length_balanced",
+  "beta": 0.1,
+  "total_optimizer_steps": 23,
+  "mean_loss": 0.674525148691015,
+  "mean_preference_accuracy": 0.5597858736489681,
+  "elapsed_s": 214.19460681453347,
+  "output_path": "/home/ATML-PA2-KV/outputs/task1_dpo/length_balanced",
+  "train_log": "/home/ATML-PA2-KV/results/task1_dpo/train_log_length_balanced.jsonl"
+}
